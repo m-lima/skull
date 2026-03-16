@@ -151,7 +151,7 @@ export class Socket {
     }
 
     const now = new Date();
-    if (now.getTime() - this.lastAttempt.getTime() > 60 * 1000) {
+    if (now.getTime() - this.lastAttempt.getTime() > 5 * 60 * 1000) {
       this.attempts = 0;
     }
 
@@ -159,11 +159,11 @@ export class Socket {
       case 0:
         return 0;
       case 1:
-        return 5 * 1000;
+        return 500;
       case 2:
-        return 10 * 1000;
+        return 1000;
       case 3:
-        return 15 * 1000;
+        return 2000;
       default:
         return;
     }
