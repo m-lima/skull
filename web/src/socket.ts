@@ -89,6 +89,7 @@ export class Socket {
   private socket: WebSocket;
   private state: SocketState;
   private attempts: number;
+  private lastAttempt: Date;
 
   public constructor(url: string | URL, checkUrl?: string | URL) {
     this.requests = [];
@@ -97,10 +98,12 @@ export class Socket {
 
     this.state = SocketState.Closed;
     this.attempts = 0;
+    this.lastAttempt = new Date(0);
     this.socket = this.connect(url, checkUrl);
   }
 
   private connect(url: string | URL, checkUrl?: string | URL) {
+    this.lastAttempt = new Date();
     this.setState(SocketState.Connecting);
 
     const socket = new WebSocket(url);
@@ -145,6 +148,11 @@ export class Socket {
     // Auth is always fatal
     if (this.state === SocketState.Unauthorized || this.state === SocketState.Forbidden) {
       return;
+    }
+
+    const now = new Date();
+    if (now.getTime() - this.lastAttempt.getTime() > 60 * 1000) {
+      this.attempts = 0;
     }
 
     switch (this.attempts) {
