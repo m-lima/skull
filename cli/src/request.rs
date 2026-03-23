@@ -150,7 +150,7 @@ impl Request {
     where
         R: sealed::Resource,
     {
-        self.host.join(R::NAME).map_err(Error::Url)
+        self.host.join(R::PATH).map_err(Error::Url)
     }
 
     async fn get_resource_no_cache<R>(&self, query: Option<String>) -> Result<Vec<R>>
@@ -165,7 +165,7 @@ impl Request {
 
         let response = self.send(request).await?;
         R::extract(response)
-            .map_err(|r| Error::UnexpectedResponse(reqwest::Method::GET, R::NAME, r))
+            .map_err(|r| Error::UnexpectedResponse(reqwest::Method::GET, R::PATH, r))
     }
 
     async fn send(&self, request: reqwest::RequestBuilder) -> Result<types::Payload> {
@@ -210,14 +210,14 @@ impl crate::PostAction for Request {
 mod sealed {
     pub trait Resource: serde::ser::Serialize + serde::de::DeserializeOwned {
         type Query: serde::Serialize;
-        const NAME: &'static str;
+        const PATH: &'static str;
         fn extract(payload: types::Payload) -> Result<Vec<Self>, types::Payload>;
     }
 
     impl Resource for types::Skull {
         type Query = ();
 
-        const NAME: &'static str = "skull";
+        const PATH: &'static str = "skull";
 
         fn extract(payload: types::Payload) -> Result<Vec<Self>, types::Payload> {
             match payload {
@@ -230,7 +230,7 @@ mod sealed {
     impl Resource for types::Quick {
         type Query = ();
 
-        const NAME: &'static str = "quick";
+        const PATH: &'static str = "occurrence/quick";
 
         fn extract(payload: types::Payload) -> Result<Vec<Self>, types::Payload> {
             match payload {
@@ -243,7 +243,7 @@ mod sealed {
     impl Resource for types::Occurrence {
         type Query = types::request::occurrence::Search;
 
-        const NAME: &'static str = "occurrence";
+        const PATH: &'static str = "occurrence";
 
         fn extract(payload: types::Payload) -> Result<Vec<Self>, types::Payload> {
             match payload {
@@ -312,7 +312,7 @@ mod cache {
     where
         R: super::sealed::Resource,
     {
-        let path = constant::path::cache().map(|p| p.join(R::NAME))?;
+        let path = constant::path::cache().map(|p| p.join(R::PATH))?;
         let bytes = std::fs::read(path).ok()?;
         serde_json::from_slice(bytes.as_slice()).ok()
     }
@@ -325,7 +325,7 @@ mod cache {
         if !path.exists() {
             std::fs::create_dir(path).ok()?;
         }
-        let path = path.join(R::NAME);
+        let path = path.join(R::PATH);
 
         let bytes = serde_json::to_vec(data).ok()?;
         std::fs::write(path, bytes).ok()
