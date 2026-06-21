@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     crane.url = "github:ipetkov/crane";
     fenix = {
       url = "github:nix-community/fenix";
@@ -65,42 +65,49 @@
           sharedOptions // { cargoExtraArgs = "-p server"; }
         );
         cli = helper.lib.rust.helper inputs system ./. (sharedOptions // { cargoExtraArgs = "-p cli"; });
-        commonWeb = {
-          nodejs = pkgs.nodejs;
+        commonWeb =
+          let
+            package = builtins.fromJSON (builtins.readFile ./web/package.json);
+          in
+          {
+            pname = package.name;
+            version = package.version;
 
-          src = pkgs.lib.fileset.toSource {
-            root = ./web;
-            fileset = pkgs.lib.fileset.unions [
-              ./web/.prettierrc.json
-              ./web/eslint.config.js
-              ./web/index.html
-              ./web/package.json
-              ./web/public
-              ./web/src
-              ./web/tsconfig.json
-              ./web/tsconfig.node.json
-              ./web/vite.config.ts
-              ./web/yarn.lock
+            nativeBuildInputs = [
+              pkgs.nodejs
+              pkgs.yarnConfigHook
+              pkgs.yarnBuildHook
             ];
-          };
 
-          doCheck = true;
-          doDist = false;
-        };
-        web = pkgs.mkYarnPackage (
+            src = pkgs.lib.fileset.toSource {
+              root = ./web;
+              fileset = pkgs.lib.fileset.unions [
+                ./web/.prettierrc.json
+                ./web/eslint.config.js
+                ./web/index.html
+                ./web/package.json
+                ./web/public
+                ./web/src
+                ./web/tsconfig.json
+                ./web/tsconfig.node.json
+                ./web/vite.config.ts
+                ./web/yarn.lock
+              ];
+            };
+
+            offlineCache = pkgs.fetchYarnDeps {
+              yarnLock = ./web/yarn.lock;
+              hash = "sha256-BCDqJaWwb82JNws7GIehYL8dVBh4MpOr8DajGBGwfFE=";
+            };
+
+            doCheck = false;
+          };
+        web = pkgs.stdenvNoCC.mkDerivation (
           commonWeb
           // {
-            nativeBuildInputs = [ pkgs.writableTmpDirAsHomeHook ];
-
-            buildPhase = ''
-              runHook preBuild
-              yarn --offline build
-              runHook postBuild
-            '';
-
             installPhase = ''
               runHook preInstall
-              mv deps/$pname/dist $out
+              mv dist $out
               runHook postInstall
             '';
           }
@@ -114,16 +121,17 @@
           web = web;
         };
         checks = all.outputs.checks // {
-          webCheck = pkgs.mkYarnPackage (
+          webCheck = pkgs.stdenvNoCC.mkDerivation (
             commonWeb
             // {
+              doCheck = true;
               dontBuild = true;
 
               checkPhase = ''
-                runHook preBuild
+                runHook preCheck
                 yarn --offline lint:eslint
                 yarn --offline lint:tsc
-                runHook postBuild
+                runHook postCheck
               '';
 
               installPhase = "mkdir -p $out";

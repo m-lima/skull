@@ -97,7 +97,7 @@ fn fetch_credentials(ring: &keyring::Entry) -> Result<(Source, Credentials)> {
 
 fn create_cookie(credentials: &Credentials) -> Result<String> {
     let token = endgame::types::Token {
-        timestamp: endgame::types::Timestamp::now() + std::time::Duration::from_secs(3600),
+        timestamp: endgame::types::Timestamp::now() + std::time::Duration::from_hours(1),
         email: credentials.user.clone(),
         given_name: None,
         family_name: None,
@@ -218,6 +218,5 @@ fn prompt_confirmation(prompt: &str) -> bool {
         .ok()
         .and_then(rucline::Outcome::some)
         .map(|choice| choice.trim().to_lowercase())
-        .filter(|choice| matches!(choice.as_str(), "y" | "yes"))
-        .is_some()
+        .is_some_and(|choice| matches!(choice.as_str(), "y" | "yes"))
 }
