@@ -50,29 +50,39 @@ where
 }
 
 #[tracing::instrument(target = "layer", skip_all)]
-fn pre_auth<'a, B, S>(
-    request: &'a hyper::Request<B>,
-    services: &std::collections::HashMap<String, S>,
-) -> Option<(&'a str, S)>
+fn pre_auth<'r, 's, B, S>(
+    request: &'r hyper::Request<B>,
+    services: &'s std::collections::HashMap<String, S>,
+) -> Option<(&'r str, S)>
 where
+    's: 'r,
     S: Clone,
 {
-    let header = super::X_EMAIL;
+    #[cfg(feature = "dev")]
+    {
+        let user = services.keys().next()?;
+        services.get(user).map(|s| (user.as_str(), s.clone()))
+    }
 
-    let Some(user_header) = request.headers().get(&header) else {
-        tracing::warn!(%header, "Header is missing");
-        return None;
-    };
+    #[cfg(not(feature = "dev"))]
+    {
+        let header = super::X_EMAIL;
 
-    let user = match user_header.to_str() {
-        Ok(user) => user,
-        Err(error) => {
-            tracing::warn!(%header, %error, "Header is not parseable as a String");
+        let Some(user_header) = request.headers().get(&header) else {
+            tracing::warn!(%header, "Header is missing");
             return None;
-        }
-    };
+        };
 
-    services.get(user).map(|s| (user, s.clone()))
+        let user = match user_header.to_str() {
+            Ok(user) => user,
+            Err(error) => {
+                tracing::warn!(%header, %error, "Header is not parseable as a String");
+                return None;
+            }
+        };
+
+        services.get(user).map(|s| (user, s.clone()))
+    }
 }
 
 pub enum Future<F> {

@@ -52,3 +52,34 @@ nginx = {
     };
 }
 ```
+
+# Locally
+
+## Backend
+
+```bash
+$ mkdir -p ./.dev/db
+$ cargo r -p server --features dev -- -U <user> -c -vvv -s 3333 ./.dev/db
+```
+
+Optionally, insert data
+
+```
+$ curl \
+  localhost:3333/skull \
+  -XPOST \
+  -H 'Content-Type: application/json' \
+  -d '
+{
+  "name": "aa",
+  "color": 16733440,
+  "icon": "fas fa-circle",
+  "price": 0
+}'
+```
+
+## Frontend
+
+```bash
+$ yarn dev --host
+```

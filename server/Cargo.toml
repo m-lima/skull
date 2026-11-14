@@ -8,6 +8,7 @@ name = "skull-server"
 path = "src/main.rs"
 
 [features]
+dev = []
 threads = ["boile-rs/rt-threads", "tokio/rt-multi-thread"]
 
 [dependencies]
