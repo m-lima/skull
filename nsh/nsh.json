@@ -1,0 +1,8 @@
+{
+  "name": "nsh",
+  "id": "com.mflima.nsh",
+  "version": "0.12.1",
+  "build": 1,
+  "rust": ".",
+  "root": "App"
+}

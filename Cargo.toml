@@ -1,5 +1,5 @@
 [workspace]
-members = ["cli", "migrator", "server", "store", "types"]
+members = ["cli", "migrator", "nsh", "server", "store", "types"]
 resolver = "2"
 
 [workspace.package]
@@ -18,6 +18,13 @@ fuzzy-matcher = "0.3.7"
 hyper = "1.8.1"
 itoa = "1.0.17"
 keyring = "3.6.3"
+nsh-base = "0.5.0"
+nsh-core = "0.5.0"
+nsh-engine = "0.5.0"
+nsh-platform-linux = { version = "0.5.0", default-features = false, features = ["plot"] }
+nsh-platform-macos = { version = "0.5.0", default-features = false, features = ["plot"] }
+nsh-platform-windows = { version = "0.5.0", default-features = false, features = ["plot"] }
+nsh-testing = "0.5.0"
 pwner = "0.1.8"
 rand = "0.10.0"
 ratatui = "0.30.0"

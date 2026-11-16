@@ -1,3 +1,5 @@
+#![deny(warnings, clippy::pedantic, clippy::all, rust_2018_idioms)]
+
 mod args;
 
 #[tokio::main(flavor = "current_thread")]

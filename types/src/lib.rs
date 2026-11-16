@@ -1,3 +1,4 @@
+#![deny(warnings, clippy::pedantic, clippy::all, rust_2018_idioms)]
 // allow(clippy::missing_errors_doc): We don't expose or generate docs for this workspace
 #![allow(clippy::missing_errors_doc)]
 

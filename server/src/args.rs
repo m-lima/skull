@@ -1,3 +1,5 @@
+#![deny(warnings, clippy::pedantic, clippy::all, rust_2018_idioms)]
+
 #[derive(Debug, thiserror::Error)]
 enum Error {
     #[error("Path does not exist")]

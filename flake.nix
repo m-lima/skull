@@ -70,6 +70,13 @@
             "store/.sqlx/*.json"
             "store/migrations/*.sql"
           ];
+          ##################
+          ##### REMOVE #####
+          ##################
+          # Must be moved to nsh web-only
+          extraToolchains = fenixPkgs: [
+            fenixPkgs.targets.wasm32-unknown-unknown.stable.rust-std
+          ];
           buildInputs = pkgs: [ pkgs.openssl ];
           nativeBuildInputs = pkgs: [ pkgs.pkg-config ];
           devPackages = pkgs: [
