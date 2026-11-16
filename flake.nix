@@ -29,6 +29,25 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+
+        prePkg = {
+          nsh = pkgs.callPackage ./nix/pkg/nsh.nix { };
+          unwrappedClang = pkgs.llvmPackages.clang-unwrapped;
+          bindgen = pkgs.buildWasmBindgenCli rec {
+            src = pkgs.fetchCrate {
+              pname = "wasm-bindgen-cli";
+              version = "0.2.130";
+              hash = "sha256-9Og1O/6/VC3sc5hBjoIWBErmLW2UHGMsTQO+6+m/dng=";
+            };
+
+            cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+              inherit src;
+              inherit (src) pname version;
+              hash = "sha256-j81sUf1m5yXU4FJfGj7GV+hdqVCV8mRmNb0QIsMCjqw=";
+            };
+          };
+        };
+
         sharedOptions = {
           allowFilesets = [
             ./store/.sqlx
@@ -57,6 +76,9 @@
             (pkgs.writeShellScriptBin "sqlite" "exec ${pkgs.sqlite}/bin/sqlite3 -init ${pkgs.writeText "sqliteconfig" ".mode columns"} $@")
             pkgs.sqlx-cli
             pkgs.yarn
+            prePkg.unwrappedClang
+            prePkg.bindgen
+            prePkg.nsh
           ];
           overrides.commonArgs.LIBSQLITE3_FLAGS = "-DSQLITE_ENABLE_MATH_FUNCTIONS=1";
         };
